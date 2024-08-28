@@ -10,186 +10,53 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                script {
-                    // Use Gradle instead of Maven for building the code
-                    echo "Building the code using Gradle..."
-                    sh './gradlew build'
-                }
+                echo "Compiling the code and packaging it into a JAR..."
+                echo "Command: mvn compile jar:jar"
             }
         }
 
         stage('Unit and Integration Tests') {
             steps {
-                script {
-                    // Run unit tests with a different testing framework
-                    echo "Running unit tests with Spock..."
-                    sh './gradlew test'
+                echo "Executing unit tests with Maven Surefire Plugin..."
+                echo "Command: mvn surefire:test"
 
-                    echo "Running integration tests with TestContainers..."
-                    sh './gradlew integrationTest'
-                }
+                echo "Executing integration tests separately..."
+                echo "Command: mvn failsafe:integration-test failsafe:verify"
             }
         }
 
         stage('Code Analysis') {
             steps {
-                script {
-                    // Use a different code analysis tool, e.g., Code Climate
-                    echo "Analyzing code with Code Climate..."
-                    sh 'codeclimate analyze --format json'
-                }
+                echo "Running static code analysis using SonarQube Scanner..."
+                echo "Command: mvn sonar:sonar -Dsonar.login=mytoken"
             }
         }
 
         stage('Security Scan') {
             steps {
-                script {
-                    // Perform a security scan using Snyk
-                    echo "Performing security scan with Snyk..."
-                    sh 'snyk test'
-                }
+                echo "Initiating OWASP Dependency-Check for security vulnerabilities..."
+                echo "Command: mvn dependency-check:aggregate"
             }
         }
 
         stage('Deploy to Staging') {
             steps {
-                script {
-                    // Deploy to staging using a different method or service, e.g., Heroku
-                    echo "Deploying application to staging environment with Heroku CLI..."
-                    sh 'heroku deploy:jar target/your-app.jar --app your-staging-app'
-                }
+                echo "Transferring application to the staging environment via AWS CLI..."
+                echo "Command: aws s3 sync target/ s3://your-staging-bucket/path/to/deploy/"
             }
         }
 
         stage('Integration Tests on Staging') {
             steps {
-                script {
-                    // Run integration tests with a different testing tool
-                    echo "Running integration tests on staging environment with Cypress..."
-                    sh 'npx cypress run --env=staging'
-                }
+                echo "Conducting integration tests in the staging environment..."
+                echo "Command: mvn verify -Denv=staging"
             }
         }
 
         stage('Deploy to Production') {
             steps {
-                script {
-                    // Deploy to production using a different method or service, e.g., Google Cloud Storage
-                    echo "Deploying application to production environment with Google Cloud CLI..."
-                    sh 'gsutil cp target/your-app.jar gs://your-production-bucket/path/to/deploy/'
-                }
-            }
-        }
-    }
-
-    post {
-        success {
-            emailext(
-                subject: "SUCCESS: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
-                body: """
-                Good news! The build ${env.JOB_NAME} [${env.BUILD_NUMBER}] was successful.
-                You can view it at: ${env.BUILD_URL}
-                """,
-                to: 'jankitpatel11@gmail.com',
-                attachLog: true
-            )
-        }
-        failure {
-            emailext(
-                subject: "FAILURE: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
-                body: """
-                Unfortunately, the build ${env.JOB_NAME} [${env.BUILD_NUMBER}] failed.
-                Please check the Jenkins logs at: ${env.BUILD_URL}
-                """,
-                to: 'jankitpatel11@gmail.com',
-                attachLog: true
-            )
-        }
-        always {
-            echo 'This will always run after all stages have completed.'
-        }
-    }
-}
-pipeline {
-    agent any
-
-    environment {
-        DIRECTORY_PATH = '/path/to/code'
-        TESTING_ENVIRONMENT = 'Staging'
-        PRODUCTION_ENVIRONMENT = 'Jankit_Production'
-    }
-
-    stages {
-        stage('Build') {
-            steps {
-                script {
-                    // Use Gradle instead of Maven for building the code
-                    echo "Building the code using Gradle..."
-                    sh './gradlew build'
-                }
-            }
-        }
-
-        stage('Unit and Integration Tests') {
-            steps {
-                script {
-                    // Run unit tests with a different testing framework
-                    echo "Running unit tests with Spock..."
-                    sh './gradlew test'
-
-                    echo "Running integration tests with TestContainers..."
-                    sh './gradlew integrationTest'
-                }
-            }
-        }
-
-        stage('Code Analysis') {
-            steps {
-                script {
-                    // Use a different code analysis tool, e.g., Code Climate
-                    echo "Analyzing code with Code Climate..."
-                    sh 'codeclimate analyze --format json'
-                }
-            }
-        }
-
-        stage('Security Scan') {
-            steps {
-                script {
-                    // Perform a security scan using Snyk
-                    echo "Performing security scan with Snyk..."
-                    sh 'snyk test'
-                }
-            }
-        }
-
-        stage('Deploy to Staging') {
-            steps {
-                script {
-                    // Deploy to staging using a different method or service, e.g., Heroku
-                    echo "Deploying application to staging environment with Heroku CLI..."
-                    sh 'heroku deploy:jar target/your-app.jar --app your-staging-app'
-                }
-            }
-        }
-
-        stage('Integration Tests on Staging') {
-            steps {
-                script {
-                    // Run integration tests with a different testing tool
-                    echo "Running integration tests on staging environment with Cypress..."
-                    sh 'npx cypress run --env=staging'
-                }
-            }
-        }
-
-        stage('Deploy to Production') {
-            steps {
-                script {
-                    // Deploy to production using a different method or service, e.g., Google Cloud Storage
-                    echo "Deploying application to production environment with Google Cloud CLI..."
-                    sh 'gsutil cp target/your-app.jar gs://your-production-bucket/path/to/deploy/'
-                }
+                echo "Uploading the application to the production environment using AWS CLI..."
+                echo "Command: aws s3 sync target/ s3://your-production-bucket/path/to/deploy/"
             }
         }
     }
